@@ -19,9 +19,6 @@ public class Main {
 
         LOG.debug("Starting game server: {} !", game);
 
-
-
-
         GenericXmlApplicationContext ctx = new GenericXmlApplicationContext();
         ctx.getEnvironment().setActiveProfiles(game);
         ctx.load("classpath:beans.xml");
