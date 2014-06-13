@@ -95,7 +95,7 @@ public class ServerEventHandler extends SimpleChannelInboundHandler<Packet> {
                 gameSession.broadcast(playerName, new StatusEvent(StatusCode.OVER, playerName));
                 break;
             default:
-                gameSession.handler().onReceiveMessage(playerName, node);
+                gameSession.handler().onReceiveMessage(playerName, node, gameSession);
                 break;
 
         }

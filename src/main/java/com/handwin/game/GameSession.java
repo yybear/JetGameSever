@@ -14,9 +14,6 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * User: roger
  * Date: 13-12-13 上午11:31
  */
-public class GameSession implements InitializingBean {
+public class GameSession {
     private static Logger LOG = LoggerFactory.getLogger(GameSession.class);
     private static HashedWheelTimer timer = new HashedWheelTimer(new DefaultThreadFactory("LOCK_TIMEOUT"), 1, TimeUnit.SECONDS);
 
@@ -42,16 +39,22 @@ public class GameSession implements InitializingBean {
     private int gameID;
     private String gameSessionID;
 
-    @Value("${game.handler}")
-    private Class<? extends GameHandler> handlerClazz;
-    @Autowired
     private ClientApi client;
-    @Autowired
     private GameSessionManager gameSessionManager;
 
     private GameHandler gameHandler;
 
     private AtomicInteger playerReadyNum = new AtomicInteger(0);
+
+    public GameSession(int gameID, String gameSessionID, GameHandler gameHandler, List<String> members,
+                       ClientApi client, GameSessionManager gameSessionManager) {
+        this.gameID = gameID;
+        this.gameSessionID = gameSessionID;
+        this.gameHandler = gameHandler;
+        this.members = members;
+        this.client = client;
+        this.gameSessionManager = gameSessionManager;
+    }
 
     public void setGameSessionID(String gameSessionID) {
         this.gameSessionID = gameSessionID;
@@ -86,19 +89,10 @@ public class GameSession implements InitializingBean {
         return this;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        try {
-            gameHandler = handlerClazz.newInstance();
-        }catch (Exception e) {
-            throw new RuntimeException("can't instantiate game handler", e);
-        }
-    }
-
     public void playerJoin(final Player player) {
         LOG.debug("player {} join game", player.getUser().getId());
         final String userId = player.getUser().getId();
-        if(gameHandler != null) gameHandler.onPlayerConnected(userId);
+        if(gameHandler != null) gameHandler.onPlayerConnected(userId, this);
 
         players.put(userId, player);
         //网络掉线或者连接关闭，移除
@@ -119,7 +113,7 @@ public class GameSession implements InitializingBean {
      * @param player
      */
     public void offlineOrClose(Channel channel, String player) {
-        if(gameHandler != null) gameHandler.onPlayerDisconnected(player, ChannelAttrKey.isUserCloseGame(channel) ? 1 : 0);
+        if(gameHandler != null) gameHandler.onPlayerDisconnected(player, ChannelAttrKey.isUserCloseGame(channel) ? 1 : 0, this);
         lockState.remove(player);
         players.remove(player);
 
@@ -150,6 +144,7 @@ public class GameSession implements InitializingBean {
             lockState.clear(); //reset the lock status
             cancelLockTimeout(lockEvent.getCode());
 
+            final GameSession session = this;
             broadcast(null, new LockCompleteEvent(requestPlayer, lockEvent.getCode(), false)).addListener(new ChannelGroupFutureListener() {
                 @Override
                 public void operationComplete(ChannelGroupFuture future) throws Exception {
@@ -159,7 +154,8 @@ public class GameSession implements InitializingBean {
                     }
 
                     LOG.info("lock complete");
-                    if (gameHandler != null) gameHandler.onLockComplete(new ResourceLock(lockEvent.getCode()));
+                    if (gameHandler != null)
+                        gameHandler.onLockComplete(new ResourceLock(lockEvent.getCode()), session);
 
                 }
             });
@@ -265,7 +261,7 @@ public class GameSession implements InitializingBean {
 
     public void clear() {
         lockState.clear();
-        gameHandler.clear();
+        gameHandler.clear(this);
         if(lockTimeout != null && !lockTimeout.isCancelled()) lockTimeout.cancel();
 
     }
@@ -276,11 +272,5 @@ public class GameSession implements InitializingBean {
 
     public int getPlayerReadyNum() {
         return playerReadyNum.get();
-    }
-
-    public static void main(String[] args) {
-        AtomicInteger i = new AtomicInteger(0);
-        i.getAndIncrement();
-        System.out.println(i.get());
     }
 }

@@ -36,8 +36,7 @@
 
     <bean id="jdbc" class="com.handwin.db.Jdbc" init-method="initJdbc"></bean>
 
-    <bean id="gameSession" class="com.handwin.game.GameSession" scope="prototype">
-    </bean>
+    <bean id="gameHandler" class="${game.handler}"></bean>
 
     <bean id="gameSessionManager" class="com.handwin.game.GameSessionManager">
     </bean>

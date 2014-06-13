@@ -1,7 +1,5 @@
 package com.handwin.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.handwin.util.Jackson;
 import com.handwin.util.RedisKey;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -19,8 +17,6 @@ import java.util.List;
  */
 public class ClientApi {
     private static Logger LOG = LoggerFactory.getLogger(ClientApi.class);
-
-    private static final ObjectMapper mapper = Jackson.mapper();
 
     @Autowired
     private JedisPool jedisPool;

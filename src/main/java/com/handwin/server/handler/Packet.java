@@ -1,4 +1,4 @@
-package com.handwin.game.server.handlers;
+package com.handwin.server.handler;
 
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;

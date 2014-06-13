@@ -4,14 +4,13 @@ package com.handwin.game;
 import com.google.common.collect.Lists;
 import com.handwin.event.Events;
 import com.handwin.event.MatchRespEvent;
+import com.handwin.server.ClientApi;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -23,17 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * User: roger
  * Date: 13-12-13 下午3:32
  */
-public class GameSessionManager implements ApplicationContextAware {
+public class GameSessionManager {
     private static final Logger log = LoggerFactory.getLogger(GameSessionManager.class);
 
     private final ConcurrentHashMap<String, GameSession> sessions = new ConcurrentHashMap<String, GameSession>(1024);
 
-    private ApplicationContext applicationContext;
+    @Autowired
+    private ClientApi clientApi;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
+    @Autowired
+    private GameHandler gameHandler;
 
     public GameSession lookupSession(String gameSessionId) {
         return sessions.get(gameSessionId);
@@ -44,10 +42,7 @@ public class GameSessionManager implements ApplicationContextAware {
 
         GameSession result = sessions.get(key);
         if(result == null) {
-            GameSession session = applicationContext.getBean("gameSession", GameSession.class);
-            session.setGameID(gameID);
-            session.setGameSessionID(gameSessionId);
-            session.setMembers(players);
+            GameSession session = new GameSession(gameID, gameSessionId, gameHandler, players, clientApi, this);
             result = sessions.putIfAbsent(key, session);
             if(result == null) result = session;
         }
