@@ -43,7 +43,7 @@
 
     <bean id="playerManager" class="com.handwin.game.PlayerManager"></bean>
 
-    <bean id="randomMatchTask" class="com.handwin.game.RandomMatchTask">
+    <bean id="randomMatchTask" class="${match.task}">
     </bean>
 
     <bean id="eventHandlerFactory" class="com.handwin.server.handler.EventHandlerFactory"></bean>
