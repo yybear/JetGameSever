@@ -138,7 +138,7 @@ public class Jdbc {
             return pooled.getConnection();
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException("get connection error!");
+            throw new DbException("get connection error!");
         }
     }
 
@@ -151,7 +151,7 @@ public class Jdbc {
             return (Integer)getQueryRunner().query(sql, SCALAR_HANDLER);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("excute %s error", sql), ex);
+            throw new DbException(String.format("excute %s error", sql), ex);
         }
     }
 
@@ -160,7 +160,7 @@ public class Jdbc {
             return (Integer)getQueryRunner().query(sql, SCALAR_HANDLER, params);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("excute %s error", sql), ex);
+            throw new DbException(String.format("excute %s error", sql), ex);
         }
     }
 
@@ -169,7 +169,7 @@ public class Jdbc {
             return getQueryRunner().query(sql, new MapHandler(), args);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("excute %s error", sql), ex);
+            throw new DbException(String.format("excute %s error", sql), ex);
         }
     }
 
@@ -193,7 +193,7 @@ public class Jdbc {
             return getQueryRunner().query(conn, sql, new MapHandler(), args);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("excute %s error", sql), ex);
+            throw new DbException(String.format("excute %s error", sql), ex);
         }
     }
 
@@ -202,7 +202,7 @@ public class Jdbc {
             return getQueryRunner().update(sql, args);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("excute %s error", sql), ex);
+            throw new DbException(String.format("excute %s error", sql), ex);
         }
     }
 
@@ -211,7 +211,7 @@ public class Jdbc {
             return getQueryRunner().update(conn, sql, args);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("excute %s error", sql), ex);
+            throw new DbException(String.format("excute %s error", sql), ex);
         }
     }
 
@@ -220,7 +220,7 @@ public class Jdbc {
             return getQueryRunner().query(sql, new MapListHandler(), args);
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new RuntimeException(String.format("query %s error", sql), ex);
+            throw new DbException(String.format("query %s error", sql), ex);
         }
     }
 
