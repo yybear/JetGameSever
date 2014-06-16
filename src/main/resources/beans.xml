@@ -29,6 +29,8 @@
         </property>
     </bean>
 
+    <bean id="cassandra" class="com.handwin.db.Cassandra"></bean>
+
     <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
         <constructor-arg index="0" value="${redis.host}"/>
         <constructor-arg index="1" value="${redis.port}"/>

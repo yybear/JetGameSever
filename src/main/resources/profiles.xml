@@ -15,6 +15,7 @@
             <property name="locations">
                 <list>
                     <value>classpath:config.properties</value>
+                    <value>classpath:config-empty.properties</value>
                 </list>
             </property>
             <property name="fileEncoding" value="utf-8"/>
@@ -27,6 +28,7 @@
         <bean id="appConfig" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
             <property name="locations">
                 <list>
+                    <value>classpath:config.properties</value>
                     <value>classpath:config-rhythm.properties</value>
                 </list>
             </property>

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.handwin.db.Cassandra;
 import com.handwin.db.Jdbc;
 import com.handwin.entity.User;
 import com.handwin.entity.UserScore;
@@ -54,6 +55,9 @@ public class EventHandlerFactory implements InitializingBean {
     private RandomMatchTask matchTask;
 
     @Autowired
+    private Cassandra cassandra;
+
+    @Autowired
     private ClientApi clientApi;
 
     private Map<Integer, EventHandler> EVENT_HANDLER_MAP = Maps.newHashMap();
@@ -90,6 +94,7 @@ public class EventHandlerFactory implements InitializingBean {
                     postParams.put("gameId", appId + "");
                     postParams.put("incr", "true");
                     HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});
+                    //cassandra.updateGameOnlineNum(appId, true);
 
                     ChannelFuture future = channel.writeAndFlush(new LoginGameRespEvent(Events.ACTION_SUCCESS, user));
                     future.addListener(new ChannelFutureListener() {
@@ -117,6 +122,7 @@ public class EventHandlerFactory implements InitializingBean {
                             postParams.put("gameId", appId + "");
                             postParams.put("incr", "false");
                             HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});
+                            //cassandra.updateGameOnlineNum(appId, false);
                         }
                     });
                 }
