@@ -10,11 +10,28 @@
         >
 
     <beans profile="empty,cleanup">
-        <context:property-placeholder location="config.properties" />
+        <!--<context:property-placeholder location="config.properties" />-->
+        <bean id="appConfig" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+            <property name="locations">
+                <list>
+                    <value>classpath:config.properties</value>
+                </list>
+            </property>
+            <property name="fileEncoding" value="utf-8"/>
+        </bean>
+        <context:property-placeholder properties-ref="appConfig"/>
     </beans>
 
     <!-- 节奏大师 -->
-    <!--<beans profile="rhythm">
-        <context:property-placeholder location="config.properties" />
-    </beans>-->
+    <beans profile="rhythm">
+        <bean id="appConfig" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+            <property name="locations">
+                <list>
+                    <value>classpath:config-rhythm.properties</value>
+                </list>
+            </property>
+            <property name="fileEncoding" value="utf-8"/>
+        </bean>
+        <context:property-placeholder properties-ref="appConfig"/>
+    </beans>
 </beans>

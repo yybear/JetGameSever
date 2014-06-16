@@ -10,6 +10,9 @@
     <context:component-scan base-package="com.handwin" />
 
     <import resource="profiles.xml"/>
+    <bean class="com.handwin.util.ConfigUtils">
+        <property name="appConfig" ref="appConfig"/>
+    </bean>
 
     <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
         <property name="driverClass">

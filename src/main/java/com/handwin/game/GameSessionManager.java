@@ -2,12 +2,7 @@ package com.handwin.game;
 
 
 import com.google.common.collect.Lists;
-import com.handwin.event.Events;
-import com.handwin.event.MatchRespEvent;
 import com.handwin.server.ClientApi;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,31 +62,7 @@ public class GameSessionManager {
 
         List<String> members = Lists.asList(player1.getUser().getId(), player2.getUser().getId(), new String[]{});
 
-        final GameSession gameSession = createSession(gameSessionId, player1.getAppId(), members);
-
-        ChannelFuture player1Future = player1.channel().writeAndFlush(new MatchRespEvent(Events.ACTION_SUCCESS, player2.getUser()));
-        ChannelFuture player2Future = player2.channel().writeAndFlush(new MatchRespEvent(Events.ACTION_SUCCESS, player1.getUser()));
-        player1Future.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if(future.isSuccess()) {
-                    Channel channel = future.channel();
-                    channel.attr(ChannelAttrKey.GAMESESSION_ID_ATTR_KEY).set(gameSessionId);
-                    gameSession.playerJoin(player1);
-                }
-            }
-        });
-        player2Future.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if(future.isSuccess()) {
-                    Channel channel = future.channel();
-                    channel.attr(ChannelAttrKey.GAMESESSION_ID_ATTR_KEY).set(gameSessionId);
-                    gameSession.playerJoin(player2);
-                }
-            }
-        });
-
+        GameSession gameSession = createSession(gameSessionId, player1.getAppId(), members);
         return gameSession;
     }
 }

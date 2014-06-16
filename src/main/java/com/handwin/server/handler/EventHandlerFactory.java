@@ -10,6 +10,7 @@ import com.handwin.entity.UserScore;
 import com.handwin.event.*;
 import com.handwin.game.*;
 import com.handwin.server.ClientApi;
+import com.handwin.util.ConfigUtils;
 import com.handwin.util.Constants;
 import com.handwin.util.HttpRequestUtils;
 import com.handwin.util.Jackson;
@@ -65,7 +66,7 @@ public class EventHandlerFactory implements InitializingBean {
                 // TODO: 用户重复登陆?
                 final String sessionId = node.get("session_id").asText();
                 final int appId = node.get("app_id").asInt();
-                Header header = new Header("client-session", sessionId);
+                final Header header = new Header("client-session", sessionId);
 
                 LOG.debug("loginAction session id is {}", sessionId);
 
@@ -84,6 +85,12 @@ public class EventHandlerFactory implements InitializingBean {
                         jdbc.update("insert into player_game_info (id, game_id, score, num) values (?,?,?,?)",
                                 user.getId(), appId, 0, 0);
                     }
+                    // 进入游戏更新游戏在线人数
+                    Map<String, String> postParams = Maps.newHashMap();
+                    postParams.put("gameId", appId + "");
+                    postParams.put("incr", "true");
+                    HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});
+
                     ChannelFuture future = channel.writeAndFlush(new LoginGameRespEvent(Events.ACTION_SUCCESS, user));
                     future.addListener(new ChannelFutureListener() {
                         @Override
@@ -99,6 +106,17 @@ public class EventHandlerFactory implements InitializingBean {
                                 player.setAppId(appId);
                                 playerManager.addPlayer(player);
                             }
+                        }
+                    });
+
+                    // channel关闭时更新游戏在线人数
+                    channel.closeFuture().addListener(new ChannelFutureListener() {
+                        @Override
+                        public void operationComplete(ChannelFuture future) throws Exception {
+                            Map<String, String> postParams = Maps.newHashMap();
+                            postParams.put("gameId", appId + "");
+                            postParams.put("incr", "false");
+                            HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});
                         }
                     });
                 }

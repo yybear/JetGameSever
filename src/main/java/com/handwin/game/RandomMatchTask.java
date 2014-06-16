@@ -6,6 +6,8 @@ import com.handwin.event.Events;
 import com.handwin.event.MatchRespEvent;
 import com.handwin.util.Constants;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,8 +68,10 @@ public class RandomMatchTask implements Runnable {
         } else if(maleSize > 0 && femaleSize == 0) {
             cannotMatch(maleWaitQueue, maleSize);
         } else {
-            gameSessionManager.createSession(maleWaitQueue.poll(), femaleWaitQueue.poll());
-
+            Player male = maleWaitQueue.poll();
+            Player female = femaleWaitQueue.poll();
+            GameSession gameSession = gameSessionManager.createSession(male, female);
+            matchOk(male, female, gameSession);
             match(maleWaitQueue, femaleWaitQueue);
         }
     }
@@ -92,6 +96,31 @@ public class RandomMatchTask implements Runnable {
         } else {
             queue.offer(player); // 重新入队列
         }
+    }
+
+    protected void matchOk(final Player player1, final Player player2, final GameSession gameSession) {
+        ChannelFuture player1Future = player1.channel().writeAndFlush(new MatchRespEvent(Events.ACTION_SUCCESS, player2.getUser()));
+        ChannelFuture player2Future = player2.channel().writeAndFlush(new MatchRespEvent(Events.ACTION_SUCCESS, player1.getUser()));
+        player1Future.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if(future.isSuccess()) {
+                    Channel channel = future.channel();
+                    channel.attr(ChannelAttrKey.GAMESESSION_ID_ATTR_KEY).set(gameSession.getGameSessionID());
+                    gameSession.playerJoin(player1);
+                }
+            }
+        });
+        player2Future.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if(future.isSuccess()) {
+                    Channel channel = future.channel();
+                    channel.attr(ChannelAttrKey.GAMESESSION_ID_ATTR_KEY).set(gameSession.getGameSessionID());
+                    gameSession.playerJoin(player2);
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {
