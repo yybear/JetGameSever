@@ -13,6 +13,7 @@
     <bean class="com.handwin.util.ConfigUtils">
         <property name="appConfig" ref="appConfig"/>
     </bean>
+    <bean id="objectMapperFactoryBean" class="com.handwin.json.ObjectMapperFactoryBean"/>
 
     <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
         <property name="driverClass">
@@ -29,7 +30,25 @@
         </property>
     </bean>
 
-    <bean id="cassandra" class="com.handwin.db.Cassandra"></bean>
+    <bean id="achillesEntityManagerFactory"
+          class="info.archinnov.achilles.integration.spring.PersistenceManagerFactoryBean">
+        <property name="entityPackages" value="com.handwin.entity"/>
+        <property name="contactPoints" value="${cassandra.seeds}"/>
+        <property name="port" value="${cassandra.port}"/>
+        <property name="keyspaceName" value="${cassandra.keyspace.name}"/>
+        <property name="objectMapper" ref="objectMapperFactoryBean"/>
+        <property name="consistencyLevelReadDefault" value="ONE"/>
+        <property name="consistencyLevelWriteDefault" value="ONE"/>
+        <property name="forceTableCreation" value="true"/>
+        <property name="compression"><value>LZ4</value></property>
+        <property name="loadBalancingPolicy">
+            <bean class="com.datastax.driver.core.policies.TokenAwarePolicy">
+                <constructor-arg>
+                    <bean class="com.datastax.driver.core.policies.RoundRobinPolicy"></bean>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
 
     <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
         <constructor-arg index="0" value="${redis.host}"/>
@@ -39,8 +58,13 @@
     <bean id="clientApi" class="com.handwin.server.ClientApi">
     </bean>
 
+    <bean id="json" class="com.handwin.util.Jackson">
+        <property name="mapper" ref="objectMapperFactoryBean"/>
+    </bean>
+
     <bean id="jdbc" class="com.handwin.db.Jdbc" init-method="initJdbc"></bean>
 
+    <bean id="cassandra" class="com.handwin.db.Cassandra"></bean>
     <bean id="gameHandler" class="${game.handler}"></bean>
 
     <bean id="gameSessionManager" class="com.handwin.game.GameSessionManager">

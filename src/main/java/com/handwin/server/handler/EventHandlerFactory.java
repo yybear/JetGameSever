@@ -1,7 +1,5 @@
 package com.handwin.server.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.handwin.db.Cassandra;
@@ -11,15 +9,14 @@ import com.handwin.entity.UserScore;
 import com.handwin.event.*;
 import com.handwin.game.*;
 import com.handwin.server.ClientApi;
-import com.handwin.util.ConfigUtils;
 import com.handwin.util.Constants;
 import com.handwin.util.HttpRequestUtils;
 import com.handwin.util.Jackson;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -67,14 +64,15 @@ public class EventHandlerFactory implements InitializingBean {
         EVENT_HANDLER_MAP.put(Events.LOGIN_GAME, new EventHandler(clientApi) {
             @Override
             public void onEvent(JsonNode node, Channel channel) throws Exception{
+
                 // TODO: 用户重复登陆?
                 final String sessionId = node.get("session_id").asText();
                 final int appId = node.get("app_id").asInt();
                 final Header header = new Header("client-session", sessionId);
-
+                cassandra.updateGameOnlineNum(appId, true);
                 LOG.debug("loginAction session id is {}", sessionId);
 
-                Map<String, Integer> params = Maps.newHashMap();
+                /*Map<String, Integer> params = Maps.newHashMap();
                 params.put("app_id", appId);
                 String response = HttpRequestUtils.doGet(coreServer + "/api/user/auth", params, new Header[]{header});
                 if(StringUtils.isBlank(response) || response.indexOf("error_code") > 0) {
@@ -90,11 +88,11 @@ public class EventHandlerFactory implements InitializingBean {
                                 user.getId(), appId, 0, 0);
                     }
                     // 进入游戏更新游戏在线人数
-                    Map<String, String> postParams = Maps.newHashMap();
+                    *//*Map<String, String> postParams = Maps.newHashMap();
                     postParams.put("gameId", appId + "");
                     postParams.put("incr", "true");
-                    HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});
-                    //cassandra.updateGameOnlineNum(appId, true);
+                    HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});*//*
+                    cassandra.updateGameOnlineNum(appId, true);
 
                     ChannelFuture future = channel.writeAndFlush(new LoginGameRespEvent(Events.ACTION_SUCCESS, user));
                     future.addListener(new ChannelFutureListener() {
@@ -125,7 +123,7 @@ public class EventHandlerFactory implements InitializingBean {
                             //cassandra.updateGameOnlineNum(appId, false);
                         }
                     });
-                }
+                }*/
             }
         });
 

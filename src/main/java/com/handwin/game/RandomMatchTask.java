@@ -1,6 +1,5 @@
 package com.handwin.game;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.handwin.event.Events;
 import com.handwin.event.MatchRespEvent;
@@ -8,6 +7,7 @@ import com.handwin.util.Constants;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

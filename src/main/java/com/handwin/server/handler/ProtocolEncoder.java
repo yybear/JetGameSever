@@ -1,11 +1,11 @@
 package com.handwin.server.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handwin.event.Event;
 import com.handwin.util.Jackson;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.nio.charset.Charset;
 
@@ -14,7 +14,7 @@ import java.nio.charset.Charset;
  * Date: 13-12-13 下午2:08
  */
 public class ProtocolEncoder extends MessageToByteEncoder<Event> {
-    private static ObjectMapper mapper = Jackson.newObjectMapper();
+    private static ObjectMapper mapper = Jackson.mapper();
     @Override
     protected void encode(ChannelHandlerContext ctx, Event event, ByteBuf out) throws Exception {
 

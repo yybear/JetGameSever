@@ -1,7 +1,5 @@
 package com.handwin.game.rhythm;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.handwin.event.Events;
 import com.handwin.game.*;
@@ -11,6 +9,8 @@ import com.handwin.util.Jackson;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

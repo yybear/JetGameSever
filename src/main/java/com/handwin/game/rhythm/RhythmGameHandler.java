@@ -1,9 +1,9 @@
 package com.handwin.game.rhythm;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.handwin.game.GameHandler;
 import com.handwin.game.GameSession;
 import com.handwin.game.ResourceLock;
+import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

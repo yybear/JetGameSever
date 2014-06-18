@@ -1,6 +1,5 @@
 package com.handwin.server.handler;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.handwin.event.Events;
 import com.handwin.event.JoinRespEvent;
 import com.handwin.server.ClientApi;
@@ -8,6 +7,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

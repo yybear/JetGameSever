@@ -1,6 +1,6 @@
 package com.handwin.event;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 
 /**

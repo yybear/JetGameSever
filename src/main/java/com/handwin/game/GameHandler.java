@@ -1,6 +1,6 @@
 package com.handwin.game;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.codehaus.jackson.JsonNode;
 
 /**
  * Un Thread Safe，不能有自己的instance variable

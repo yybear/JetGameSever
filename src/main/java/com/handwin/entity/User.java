@@ -1,6 +1,6 @@
 package com.handwin.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
  * User: qgan(qgan@v5.cn)
