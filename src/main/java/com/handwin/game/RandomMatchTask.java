@@ -57,6 +57,7 @@ public class RandomMatchTask implements Runnable {
     }
 
     protected void match(LinkedBlockingQueue<Player> maleWaitQueue, LinkedBlockingQueue<Player> femaleWaitQueue) {
+        // TODO: 用户登陆或者断线后需要移除
         int maleSize = maleWaitQueue.size();
         int femaleSize = femaleWaitQueue.size();
 

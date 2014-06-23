@@ -22,6 +22,33 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+
+        <repository>
+            <id>nexus-public</id>
+            <name>Public Repository</name>
+            <url>http://121.199.64.231:8081/nexus/content/repositories/public</url>
+        </repository>
+        <repository>
+            <id>nexus-thirdparty</id>
+            <name>3rd Party Repository</name>
+            <url>http://121.199.64.231:8081/nexus/content/repositories/thirdparty</url>
+        </repository>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Release Repository</name>
+            <url>http://121.199.64.231:8081/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>nexus-snapshots</id>
+            <name>Snapshot Repository</name>
+            <url>http://121.199.64.231:8081/nexus/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>

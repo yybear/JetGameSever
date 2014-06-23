@@ -13,6 +13,8 @@ import com.handwin.util.Constants;
 import com.handwin.util.HttpRequestUtils;
 import com.handwin.util.Jackson;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonNode;
@@ -37,27 +39,27 @@ public class EventHandlerFactory implements InitializingBean {
     private static final Logger LOG = LoggerFactory.getLogger(EventHandlerFactory.class);
 
     @Value("${core.server}")
-    private String coreServer;
+    protected String coreServer;
 
     @Autowired
-    private PlayerManager playerManager;
+    protected PlayerManager playerManager;
 
     @Autowired
-    private GameSessionManager gameSessionManager;
+    protected GameSessionManager gameSessionManager;
 
     @Autowired
-    private Jdbc jdbc;
+    protected Jdbc jdbc;
 
     @Autowired
-    private RandomMatchTask matchTask;
+    protected RandomMatchTask matchTask;
 
     @Autowired
-    private Cassandra cassandra;
+    protected Cassandra cassandra;
 
     @Autowired
-    private ClientApi clientApi;
+    protected ClientApi clientApi;
 
-    private Map<Integer, EventHandler> EVENT_HANDLER_MAP = Maps.newHashMap();
+    protected Map<Integer, EventHandler> EVENT_HANDLER_MAP = Maps.newHashMap();
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -69,10 +71,9 @@ public class EventHandlerFactory implements InitializingBean {
                 final String sessionId = node.get("session_id").asText();
                 final int appId = node.get("app_id").asInt();
                 final Header header = new Header("client-session", sessionId);
-                cassandra.updateGameOnlineNum(appId, true);
                 LOG.debug("loginAction session id is {}", sessionId);
 
-                /*Map<String, Integer> params = Maps.newHashMap();
+                Map<String, Integer> params = Maps.newHashMap();
                 params.put("app_id", appId);
                 String response = HttpRequestUtils.doGet(coreServer + "/api/user/auth", params, new Header[]{header});
                 if(StringUtils.isBlank(response) || response.indexOf("error_code") > 0) {
@@ -88,11 +89,8 @@ public class EventHandlerFactory implements InitializingBean {
                                 user.getId(), appId, 0, 0);
                     }
                     // 进入游戏更新游戏在线人数
-                    *//*Map<String, String> postParams = Maps.newHashMap();
-                    postParams.put("gameId", appId + "");
-                    postParams.put("incr", "true");
-                    HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});*//*
                     cassandra.updateGameOnlineNum(appId, true);
+                    cassandra.initPlayer(user.getId(), appId);
 
                     ChannelFuture future = channel.writeAndFlush(new LoginGameRespEvent(Events.ACTION_SUCCESS, user));
                     future.addListener(new ChannelFutureListener() {
@@ -116,14 +114,10 @@ public class EventHandlerFactory implements InitializingBean {
                     channel.closeFuture().addListener(new ChannelFutureListener() {
                         @Override
                         public void operationComplete(ChannelFuture future) throws Exception {
-                            Map<String, String> postParams = Maps.newHashMap();
-                            postParams.put("gameId", appId + "");
-                            postParams.put("incr", "false");
-                            HttpRequestUtils.doPost(ConfigUtils.getString("core.server") + "/api/game/update_online_num", postParams, new Header[]{header});
-                            //cassandra.updateGameOnlineNum(appId, false);
+                            cassandra.updateGameOnlineNum(appId, false);
                         }
                     });
-                }*/
+                }
             }
         });
 
@@ -423,6 +417,26 @@ public class EventHandlerFactory implements InitializingBean {
                 }
 
                 matchTask.joinQueue(node, channel);
+            }
+        });
+
+        EVENT_HANDLER_MAP.put(Events.SEND_PUSH_MSG, new EventHandler(clientApi) {
+            @Override
+            public void onEvent(JsonNode node, Channel channel) throws Exception {
+                String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
+                int appId = channel.attr(APPID_ATTR_KEY).get();
+                if (!auth(sessionId, appId, channel)) {
+                    return;
+                }
+
+                String player = node.get("player").asText();
+                String msg = node.get("msg").asText();
+                LOG.debug("get push msg {} {}", player, msg);
+
+                Player recv = playerManager.get(player);
+                if(recv != null) {
+                    recv.channel().writeAndFlush(new SendPushMsgRespEvent(player, msg));
+                }
             }
         });
     }
