@@ -1,7 +1,11 @@
 package com.handwin.util;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.PropertyNamingStrategy;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,14 +23,15 @@ public class Jackson {
         this.mapper = mapper;
     }
 
-    /*public static ObjectMapper newObjectMapper() {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    public static ObjectMapper newObjectMapper() {
+        mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        mapper.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.setPropertyNamingStrategy(
                 PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
         return mapper;
-    }*/
+    }
 
     public static ObjectMapper mapper() {
         return mapper;

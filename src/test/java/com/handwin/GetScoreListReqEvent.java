@@ -1,3 +1,5 @@
+package com.handwin;
+
 import com.handwin.event.Event;
 import com.handwin.event.Events;
 

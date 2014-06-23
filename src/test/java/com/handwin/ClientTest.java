@@ -1,5 +1,8 @@
+package com.handwin;
+
 import com.handwin.entity.User;
 import com.handwin.event.*;
+
 import com.handwin.server.handler.Packet;
 import com.handwin.server.handler.ProtocolDecoder;
 import com.handwin.server.handler.ProtocolEncoder;
@@ -32,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  */
 class ClientHandler extends SimpleChannelInboundHandler<Packet> {
     private static final Logger log = LoggerFactory.getLogger(ClientHandler.class);
-    private static final ObjectMapper mapper = Jackson.mapper();
+    private static final ObjectMapper mapper = Jackson.newObjectMapper();
 
     private String sessionId;
     private int testType;
@@ -55,7 +58,6 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
     public void channelRead0(ChannelHandlerContext ctx,
                              Packet packet) throws Exception {
 
-
         if(Events.CONNECT_PACKET_TYPE == packet.getPacketType()) {
             byte cmd = packet.getCmd();
             log.debug("接收：连接指令 {}", cmd);
@@ -67,6 +69,7 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
         }
 
         JsonNode node = mapper.readTree(packet.getData());
+
         int type = node.get("type").asInt();
         log.debug("event type is {}", type);
 
@@ -93,6 +96,9 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
                 saveGameInfo(node, ctx.channel());
             else if(testType == Events.SCORE_LIST)
                 getScoreList(ctx.channel());
+            else if(testType == Events.SEND_PUSH_MSG) {
+                sendMsg(node, ctx.channel());
+            }
         } else if(Events.JOIN_WAIT_QUEUE == type) {  // 随机匹配结果
             if(node.get("code").asInt() == 2) {
                 log.debug("接收：匹配失败");
@@ -136,6 +142,8 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
             log.debug("玩家已经准备好, 游戏开始");
         } else if(Events.SCORE_LIST == type) {
             log.debug("获取到积分排行榜 {}", node.get("user_scores"));
+        } else if(Events.FORWARD_PUSH_MSG == type) {
+            log.debug("获取到消息 {}", node.get("msg").asText());
         }
     }
 
@@ -166,7 +174,7 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
 
     private void addFriend(JsonNode node, Channel channel) {
         log.debug("客户端：添加好友");
-        channel.writeAndFlush(new AddFriendReqEvent(new String[]{"7183f670e0ab11e3b91369f51b0e7dca"}));
+        channel.writeAndFlush(new AddFriendReqEvent(new String[]{"37193710f90c11e3bdf269f51b0e7dca"}));
     }
 
     private void getFriend(JsonNode node, Channel channel) {
@@ -181,7 +189,7 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
 
     private void reply(Channel channel, String player) {
         log.debug("客户端：回复 {} 游戏邀请", player);
-        channel.writeAndFlush(new ReplyInviteRespEvent(player, 3));
+        channel.writeAndFlush(new ReplyInviteRespEvent(player, Events.ACTION_SUCCESS));
     }
 
     private void pingServer(final Channel channel) {
@@ -223,6 +231,11 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
 
         log.debug("send JOIN_WAIT_QUEUE time is {}", System.currentTimeMillis());
         channel.writeAndFlush(new WaitReqEvent(new int[]{1,3,4}));
+    }
+
+    private void sendMsg(JsonNode node, Channel channel) {
+        log.debug("send msg");
+        channel.writeAndFlush(new SendMsgReqEvent("111", "c6cc2ad0f8f211e385e869f51b0e7dca" ));
     }
 }
 
@@ -270,28 +283,28 @@ public class ClientTest {
 
     public static void main(String[] args) throws Exception {
 
-        new Thread(new Runnable() {
+        /*new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    new ClientTest("3fb97892bc3f468490b67938328b58bf", Events.LOGIN_GAME).start();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
-        /*Thread.sleep(1000);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    new ClientTest("188979c5149c47b49969271795b383cd", Events.JOIN_WAIT_QUEUE).start();
+                    new ClientTest("0487a30e4db042a0816c88f0e9da12ed", Events.LOGIN_GAME).start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }).start();*/
+
+        /*Thread.sleep(10000);  */
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new ClientTest("188979c5149c47b49969271795b383cd", Events.LOGIN_GAME).start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }

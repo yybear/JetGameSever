@@ -1,9 +1,6 @@
 package com.handwin.json;
 
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.PropertyNamingStrategy;
+import org.codehaus.jackson.map.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
@@ -22,6 +19,7 @@ public class ObjectMapperFactoryBean implements FactoryBean<ObjectMapper> {
     public ObjectMapperFactoryBean() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        this.objectMapper.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
         this.objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.objectMapper.setPropertyNamingStrategy(
                 PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);

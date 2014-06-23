@@ -4,6 +4,8 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 /**
  * User: roger
  * Date: 13-12-13 上午11:17
@@ -132,5 +134,19 @@ public class Packet {
 
     }
 
-
+    @Override
+    public String toString() {
+        return "Packet{" +
+                "start=" + start +
+                ", version=" + version +
+                ", packetType=" + packetType +
+                ", secret=" + secret +
+                ", timestamp=" + timestamp +
+                ", packetSize=" + packetSize +
+                ", padding=" + padding +
+                ", end=" + end +
+                ", cmd=" + cmd +
+                ", data=" + Arrays.toString(data) +
+                '}';
+    }
 }

@@ -59,6 +59,9 @@ public class EventHandlerFactory implements InitializingBean {
     @Autowired
     protected ClientApi clientApi;
 
+    @Value("${max.wait.time}")
+    protected int maxWaitTime;
+
     protected Map<Integer, EventHandler> EVENT_HANDLER_MAP = Maps.newHashMap();
 
     @Override
@@ -212,7 +215,7 @@ public class EventHandlerFactory implements InitializingBean {
 
         EVENT_HANDLER_MAP.put(Events.INVITE_PLAYER, new EventHandler(clientApi) {
             @Override
-            public void onEvent(JsonNode node, Channel channel) throws Exception {
+            public void onEvent(JsonNode node, final Channel channel) throws Exception {
                 String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
                 int appId = channel.attr(APPID_ATTR_KEY).get();
                 if (!auth(sessionId, appId, channel)) {
@@ -222,19 +225,44 @@ public class EventHandlerFactory implements InitializingBean {
                 String[] players = Jackson.fromJson(node.get("player"), new TypeReference<String[]>() {});
 
                 // 给邀请的人发送
-                String me = channel.attr(PLAYERNAME_ATTR_KEY).get();
-                for(String playerName : players) {
-                    LOG.debug("send invite request to player {} to play game", playerName);
-                    Player player = playerManager.get(playerName);
+                final String me = channel.attr(PLAYERNAME_ATTR_KEY).get();
+                final String playerName = players[0];
 
-                    if(player == null) { // 用户已经下线
-                        LOG.debug("player {} has already offline, invite failed", playerName);
-                        channel.writeAndFlush(new InviteRespEvent(Events.ACTION_FAILED, playerName));
-                    } else { // 给受邀者发送消息
-                        ReplyInviteReqEvent event = new ReplyInviteReqEvent(me);
-                        player.channel().writeAndFlush(event);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        long begin = System.currentTimeMillis();
+                        LOG.debug("invite player {} on {}, wait!", playerName, begin);
+                        do {
+                            Player self = playerManager.get(me);
+                            Player player = playerManager.get(playerName);
+                            if(self == null) {
+                                // 自己退出了
+                                break;
+                            }
+                            if(player == null) {
+                                // 玩家不在线 而且没有过超时时间
+                                LOG.debug("player {} is not online on {}, wait!", playerName, System.currentTimeMillis());
+                                if((System.currentTimeMillis() - begin) >= maxWaitTime) {
+                                    LOG.debug("time out, send failed msg to inviter!");
+                                    channel.writeAndFlush(new InviteRespEvent(Events.ACTION_FAILED, playerName));
+                                    break;
+                                } else {
+                                    LOG.debug("sleep for 2 min!");
+                                    try {
+                                        Thread.sleep(2000);
+                                    } catch (InterruptedException e) {
+                                    }
+                                }
+                            } else { // 给受邀者发送消息
+                                LOG.debug("player {} is online on {}, send invite!", playerName, System.currentTimeMillis());
+                                ReplyInviteReqEvent event = new ReplyInviteReqEvent(me);
+                                player.channel().writeAndFlush(event);
+                                break;
+                            }
+                        } while (true);
                     }
-                }
+                }).start();
             }
         });
 
