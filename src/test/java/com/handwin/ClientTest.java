@@ -78,6 +78,7 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
                 log.debug("接收：登陆失败");
                 return;
             }
+            log.debug("res is {}", node);
 
             pingServer(ctx.channel());  // 定时发送心跳
 

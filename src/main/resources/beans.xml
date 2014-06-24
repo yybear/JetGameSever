@@ -75,7 +75,7 @@
     <bean id="randomMatchTask" class="${match.task}">
     </bean>
 
-    <bean id="eventHandlerFactory" class="com.handwin.server.handler.EventHandlerFactory"></bean>
+    <bean id="eventHandlerFactory" class="${event.handler.factory}"></bean>
 
     <bean id="pipelineFacotry" class="com.handwin.server.handler.MultiplexerChannelInitializer">
     </bean>

@@ -34,7 +34,7 @@ public class Cassandra {
         }
     }
 
-    public void initPlayer(String uid, Integer gameId) {
+    public GamePlayer initPlayer(String uid, Integer gameId) {
         log.debug("init player uid {}, gameId {}", uid, gameId);
         GamePlayer player = manager.find(GamePlayer.class, new GamePlayerKey(uid, gameId));
         if(player == null) {
@@ -45,5 +45,7 @@ public class Cassandra {
             player.setTieNum(0);
             manager.persist(player);
         }
+
+        return player;
     }
 }

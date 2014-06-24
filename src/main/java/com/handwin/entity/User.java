@@ -24,6 +24,43 @@ public class User {
 
     private int gameStatus;
 
+    private Integer levet;
+    private Integer stars;
+    private Integer experience;
+    private Integer threeStarNum;
+
+    public Integer getLevet() {
+        return levet;
+    }
+
+    public void setLevet(Integer levet) {
+        this.levet = levet;
+    }
+
+    public Integer getStars() {
+        return stars;
+    }
+
+    public void setStars(Integer stars) {
+        this.stars = stars;
+    }
+
+    public Integer getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Integer experience) {
+        this.experience = experience;
+    }
+
+    public Integer getThreeStarNum() {
+        return threeStarNum;
+    }
+
+    public void setThreeStarNum(Integer threeStarNum) {
+        this.threeStarNum = threeStarNum;
+    }
+
     public String getAvatar_url() {
         return avatar_url;
     }

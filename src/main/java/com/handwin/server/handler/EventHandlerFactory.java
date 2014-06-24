@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.handwin.db.Cassandra;
 import com.handwin.db.Jdbc;
+import com.handwin.entity.GamePlayer;
 import com.handwin.entity.User;
 import com.handwin.entity.UserScore;
 import com.handwin.event.*;
@@ -86,6 +87,7 @@ public class EventHandlerFactory implements InitializingBean {
                     future.addListener(ChannelFutureListener.CLOSE);
                 } else {
                     final User user = Jackson.fromJson(response, User.class);
+                    // TODO: 这个后面去除，全存放在cassandra里面
                     int count = jdbc.count("select count(*) c from player_game_info where id=? and game_id=?", user.getId(), appId);
                     if(0 == count) {  // 第一次登陆保存玩家游戏信息
                         jdbc.update("insert into player_game_info (id, game_id, score, num) values (?,?,?,?)",
@@ -93,7 +95,12 @@ public class EventHandlerFactory implements InitializingBean {
                     }
                     // 进入游戏更新游戏在线人数
                     cassandra.updateGameOnlineNum(appId, true);
-                    cassandra.initPlayer(user.getId(), appId);
+                    GamePlayer gamePlayer = cassandra.initPlayer(user.getId(), appId);
+
+                    user.setExperience(gamePlayer.getExperience());
+                    user.setLevet(gamePlayer.getLevel());
+                    user.setStars(gamePlayer.getStars());
+                    user.setThreeStarNum(gamePlayer.getThreeStarNum());
 
                     ChannelFuture future = channel.writeAndFlush(new LoginGameRespEvent(Events.ACTION_SUCCESS, user));
                     future.addListener(new ChannelFutureListener() {
