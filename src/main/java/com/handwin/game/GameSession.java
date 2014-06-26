@@ -46,6 +46,11 @@ public class GameSession {
 
     private AtomicInteger playerReadyNum = new AtomicInteger(0);
 
+    // 对战成绩同步
+    private AtomicInteger battleScoreNum = new AtomicInteger(0);
+    // 对战成绩
+    private AtomicInteger battleScore = new AtomicInteger(0);
+
     public GameSession(int gameID, String gameSessionID, GameHandler gameHandler, List<String> members,
                        ClientApi client, GameSessionManager gameSessionManager) {
         this.gameID = gameID;
@@ -272,5 +277,23 @@ public class GameSession {
 
     public int getPlayerReadyNum() {
         return playerReadyNum.get();
+    }
+
+    public void addBattleScoreNum(Integer score) {
+        battleScoreNum.getAndIncrement();
+        battleScore.getAndAdd(score);
+    }
+
+    public int getBattleScoreNum() {
+        return battleScoreNum.get();
+    }
+
+    public void resetBattleScoreNum() {
+        battleScoreNum = new AtomicInteger(0);
+        battleScore = new AtomicInteger(0);
+    }
+
+    public int getBattleScore() {
+        return battleScore.get();
     }
 }

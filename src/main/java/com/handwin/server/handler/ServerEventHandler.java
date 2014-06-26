@@ -50,7 +50,6 @@ public class ServerEventHandler extends SimpleChannelInboundHandler<Packet> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
-        LOG.debug("server event handler get request packet {}", packet);
         Channel channel = ctx.channel();
 
         if(Events.CONNECT_PACKET_TYPE == packet.getPacketType()) { //支持连接指令{0x03:心跳,0x05:LOGOUT}

@@ -13,6 +13,10 @@ public class ConfigUtils {
         return appConfig.getProperty(key);
     }
 
+    public static Integer getInt(String key) {
+        return Integer.valueOf(appConfig.getProperty(key));
+    }
+
     public void setAppConfig(Properties appConfig) {
         this.appConfig = appConfig;
     }

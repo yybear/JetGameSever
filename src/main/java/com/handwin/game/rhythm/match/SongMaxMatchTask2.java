@@ -9,7 +9,6 @@ import com.handwin.game.Player;
 import com.handwin.game.RandomMatchTask;
 import com.handwin.game.rhythm.event.SongMatchRespEvent;
 import com.handwin.util.Constants;
-import com.handwin.util.Hungarian;
 import com.handwin.util.Jackson;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -110,7 +109,7 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
 
                     if(matched != null) {
                         if(log.isDebugEnabled())
-                            log.debug("add male {} to {}'s interested map", male.getUser(), female.getUser());
+                            log.debug("add male {} to {}'s interested map", male.getUser().getId(), female.getUser().getId());
                         malePool.remove(j);
                         add(female, male);  // 有配对可能，放入playerMatchItemMap
                         break;
@@ -128,8 +127,10 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
 
             // 使用匈牙利算法配对
             Hungarian hungarian = new Hungarian();
-            hungarian.findMatch(femaleInterestMap, maleInterestMap);
+            log.debug("femaleInterestMap size is {}", femaleInterestMap.size());
+            hungarian.findMatch(femaleInterestMap);
             Set<PlayerMatchItem> matchItemSet = hungarian.getMatchs();
+            log.debug("match size is {}", matchItemSet.size());
             for(PlayerMatchItem matchItem : matchItemSet) {
                 Player female = playerManager.get(matchItem.getFemale());
                 Player male = playerManager.get(matchItem.getMale());
@@ -151,7 +152,7 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
             }
         }
 
-        return (Integer[])list.toArray();
+        return list.toArray(new Integer[0]);
     }
 
     protected void matchOk(final Player player1, final Player player2, final GameSession gameSession) {
@@ -220,7 +221,7 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
     public static void main(String[] args) {
         SongMaxMatchTask2 task = new SongMaxMatchTask2();
 
-        task.run();
+        task.getSameSongNo(new int[] {1,2,3}, new int[] {1,2,3});
 
     }
 }

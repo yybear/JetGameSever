@@ -1,10 +1,7 @@
-package com.handwin.util;
+package com.handwin.game.rhythm.match;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.handwin.game.rhythm.match.Female;
-import com.handwin.game.rhythm.match.Male;
-import com.handwin.game.rhythm.match.PlayerMatchItem;
 
 import java.util.Map;
 import java.util.Set;
@@ -22,8 +19,7 @@ public class Hungarian {
         return matchs;
     }
 
-    public int findMatch(Map<String, Female> femaleInterestMap,
-                         Map<String, Male> maleInterestMap){
+    public int findMatch(Map<String, Female> femaleInterestMap){
         if(femaleInterestMap.size() > 0) {
             for(String femalekey : femaleInterestMap.keySet()) {    //遍历二分图的子图
                 if(hasAugmentPath(femaleInterestMap.get(femalekey))) {
@@ -132,7 +128,7 @@ public class Hungarian {
         maleInterestMap.put("m1", m1);
         maleInterestMap.put("m2", m2);
         maleInterestMap.put("m3", m3);
-        h.findMatch(femaleInterestMap, maleInterestMap);
+        h.findMatch(femaleInterestMap);
 
         h.printMatchInfo();
     }

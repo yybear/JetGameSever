@@ -49,9 +49,7 @@ public abstract class NettyTcpServer implements InitializingBean, DisposableBean
         workGroup.shutdownGracefully();
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-
+    protected void startServer() {
         bossGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("NETTY-BOSS"));
         workGroup = new NioEventLoopGroup(0, new DefaultThreadFactory("NETTY-WORKER"));
 
@@ -66,20 +64,24 @@ public abstract class NettyTcpServer implements InitializingBean, DisposableBean
                     .option(ChannelOption.SO_SNDBUF, sendBufferSize)
                     .option(ChannelOption.SO_BACKLOG, backlog);
 
-            initializeGameServer();
-
             bootstrap.childHandler(pipelineFactory);
 
             ChannelFuture f = bootstrap.bind(new InetSocketAddress(port)).sync();
             log.info("GAME Server start");
             f.channel().closeFuture().sync();
 
+            initializeGameServer();
         }catch (InterruptedException e) {
             log.error("run error", e);
         }finally {
             bossGroup.shutdownGracefully();
             workGroup.shutdownGracefully();
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        startServer();
     }
 
     public abstract void initializeGameServer();

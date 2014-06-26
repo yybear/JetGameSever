@@ -9,6 +9,7 @@ import com.handwin.entity.User;
 import com.handwin.entity.UserScore;
 import com.handwin.event.*;
 import com.handwin.game.*;
+import com.handwin.game.rhythm.event.BattleScoreRespEvent;
 import com.handwin.server.ClientApi;
 import com.handwin.util.Constants;
 import com.handwin.util.HttpRequestUtils;
@@ -65,9 +66,8 @@ public class EventHandlerFactory implements InitializingBean {
 
     protected Map<Integer, EventHandler> EVENT_HANDLER_MAP = Maps.newHashMap();
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        EVENT_HANDLER_MAP.put(Events.LOGIN_GAME, new EventHandler(clientApi) {
+    protected EventHandler loginGameHandler() {
+        return new EventHandler(clientApi) {
             @Override
             public void onEvent(JsonNode node, Channel channel) throws Exception{
 
@@ -129,17 +129,11 @@ public class EventHandlerFactory implements InitializingBean {
                     });
                 }
             }
-        });
+        };
+    }
 
-        EVENT_HANDLER_MAP.put(Events.LOGOUT_GAME, new EventHandler(clientApi) {
-            @Override
-            public void onEvent(JsonNode node, Channel channel) throws Exception {
-                // 关闭channel
-                channel.close();
-            }
-        });
-
-        EVENT_HANDLER_MAP.put(Events.GET_FRIENDS, new EventHandler(clientApi) {
+    protected EventHandler getFriendsHandler() {
+        return new EventHandler(clientApi) {
             @Override
             public void onEvent(JsonNode node, Channel channel) throws Exception {
                 LOG.debug("getFriends");
@@ -184,7 +178,124 @@ public class EventHandlerFactory implements InitializingBean {
                     channel.writeAndFlush(new GetFriendsRespEvent(Events.ACTION_SUCCESS, players));
                 }
             }
+        };
+    }
+
+    protected EventHandler readyHandler() {
+        return new EventHandler(clientApi) {
+            @Override
+            public void onEvent(JsonNode node, Channel channel) throws Exception {
+                String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
+                int appId = channel.attr(APPID_ATTR_KEY).get();
+                if (!auth(sessionId, appId, channel)) {
+                    return;
+                }
+                String me = getMe(sessionId);
+
+                String gameSessionId = channel.attr(GAMESESSION_ID_ATTR_KEY).get();
+                GameSession gameSession = gameSessionManager.lookupSession(gameSessionId);
+                if(gameSession == null) {
+                    closeChannelWithLoginFailure(channel,"没有配对的游戏会话");
+                    return;
+                }
+
+                gameSession.addPlayerReadyNum(); // 准备就绪的玩家计数
+
+                List<String> players = gameSession.getMembers();
+                for(String playerName : players) {
+                    if(playerName.equals(me)) continue;
+
+                    Player player = playerManager.get(playerName);
+                    if(null == player) continue;
+
+                    player.channel().writeAndFlush(new UserReadyRespEvent(Events.ACTION_SUCCESS, me));
+                }
+
+                if(players.size() == gameSession.getPlayerReadyNum()) {
+                    // 都准备好了
+                    Event event = new Event();
+                    event.setType(Events.GAME_START);
+                    for(String playerName : players) {
+                        Player player = playerManager.get(playerName);
+                        if(null == player) continue;
+
+                        player.channel().writeAndFlush(event);
+                    }
+                }
+            }
+        };
+    }
+
+    protected EventHandler battleScoreHandler() {
+        return new EventHandler(clientApi) {
+            @Override
+            public void onEvent(JsonNode node, Channel channel) throws Exception {
+                String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
+                int appId = channel.attr(APPID_ATTR_KEY).get();
+                if (!auth(sessionId, appId, channel)) {
+                    return;
+                }
+                Integer score = node.get("player_score").asInt(); // 玩家个人得分
+                Integer noteScore = node.get("note_score").asInt(); // 音符总分
+
+                String gameSessionId = channel.attr(GAMESESSION_ID_ATTR_KEY).get();
+                GameSession gameSession = gameSessionManager.lookupSession(gameSessionId);
+                if(gameSession == null) {
+                    closeChannelWithLoginFailure(channel,"没有配对的游戏会话");
+                    return;
+                }
+
+                gameSession.addBattleScoreNum(score);
+                List<String> players = gameSession.getMembers();
+                Integer battleScore;
+                if(players.size() == gameSession.getBattleScoreNum()) {
+                    // 都准备取双人成绩
+                    LOG.debug("all player is ready, send battle score");
+                    int sumPlayerScore = gameSession.getBattleScore();  // 2个人的成绩和
+                    LOG.debug("tow players score is {}", sumPlayerScore);
+                    String player1 = players.get(0);
+                    String player2 = players.get(1);
+
+                    // 取玩家的等级
+                    GamePlayer gamePlayer1 = cassandra.getPlayer(player1, appId);
+                    GamePlayer gamePlayer2 = cassandra.getPlayer(player2, appId);
+
+                    // 等级加成
+                    Integer player1Addition = cassandra.getGameSongLevel(gamePlayer1.getLevel()).getAddition();
+                    Integer player2Addition = cassandra.getGameSongLevel(gamePlayer2.getLevel()).getAddition();
+
+                    Float fNoteScore = new Float(noteScore);
+                    Float fPlayer1Addition = new Float(player1Addition)/100;
+                    Float fPlayer2Addition = new Float(player2Addition)/100;
+
+                    // 计算双人得分
+                    battleScore = Math.round(fNoteScore * (1 + fPlayer1Addition + fPlayer2Addition)) + gameSession.getBattleScore();
+
+                    Player player1User = playerManager.get(player1);
+                    Player player2User = playerManager.get(player2);
+
+                    player1User.channel().writeAndFlush(new BattleScoreRespEvent(battleScore, Events.ACTION_SUCCESS));
+                    player2User.channel().writeAndFlush(new BattleScoreRespEvent(battleScore, Events.ACTION_SUCCESS));
+                }
+                // TODO: 超时没有处理
+            }
+        };
+    }
+
+    protected void initEventHandlerMap() {
+        EVENT_HANDLER_MAP.put(Events.LOGIN_GAME, loginGameHandler());
+
+        EVENT_HANDLER_MAP.put(Events.LOGOUT_GAME, new EventHandler(clientApi) {
+            @Override
+            public void onEvent(JsonNode node, Channel channel) throws Exception {
+                // 关闭channel
+                channel.close();
+            }
         });
+
+        EVENT_HANDLER_MAP.put(Events.GET_FRIENDS, getFriendsHandler());
+
+        EVENT_HANDLER_MAP.put(Events.BATTLE_SCORE, battleScoreHandler());
 
         EVENT_HANDLER_MAP.put(Events.ADD_FRIENDS, new EventHandler(clientApi) {
             @Override
@@ -343,48 +454,7 @@ public class EventHandlerFactory implements InitializingBean {
             }
         });
 
-        EVENT_HANDLER_MAP.put(Events.PLAYER_READY, new EventHandler(clientApi) {
-            @Override
-            public void onEvent(JsonNode node, Channel channel) throws Exception {
-                String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
-                int appId = channel.attr(APPID_ATTR_KEY).get();
-                if (!auth(sessionId, appId, channel)) {
-                    return;
-                }
-                String me = getMe(sessionId);
-
-                String gameSessionId = channel.attr(GAMESESSION_ID_ATTR_KEY).get();
-                GameSession gameSession = gameSessionManager.lookupSession(gameSessionId);
-                if(gameSession == null) {
-                    closeChannelWithLoginFailure(channel,"没有配对的游戏会话");
-                    return;
-                }
-
-                gameSession.addPlayerReadyNum(); // 准备就绪的玩家计数
-
-                List<String> players = gameSession.getMembers();
-                for(String playerName : players) {
-                    if(playerName.equals(me)) continue;
-
-                    Player player = playerManager.get(playerName);
-                    if(null == player) continue;
-
-                    player.channel().writeAndFlush(new UserReadyRespEvent(Events.ACTION_SUCCESS, me));
-                }
-
-                if(players.size() == gameSession.getPlayerReadyNum()) {
-                    // 都准备好了
-                    Event event = new Event();
-                    event.setType(Events.GAME_START);
-                    for(String playerName : players) {
-                        Player player = playerManager.get(playerName);
-                        if(null == player) continue;
-
-                        player.channel().writeAndFlush(event);
-                    }
-                }
-            }
-        });
+        EVENT_HANDLER_MAP.put(Events.PLAYER_READY, readyHandler());
 
         EVENT_HANDLER_MAP.put(Events.SCORE_LIST, new EventHandler(clientApi) {
             @Override
@@ -474,6 +544,11 @@ public class EventHandlerFactory implements InitializingBean {
                 }
             }
         });
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        initEventHandlerMap();
     }
 
     public EventHandler getEventHandler(int eventType) {

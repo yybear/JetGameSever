@@ -47,6 +47,24 @@ public class GamePlayer {
     @Column(name = "lose_num")
     private Integer loseNum;
 
+    /**
+     * 体力
+     */
+    @Column
+    private Integer power;
+
+    /**
+     * 体力的消耗时间（秒），记录第一次消耗体力的时间
+     */
+    @Column(name = "power_consume_time")
+    private Long powerConsumeTime;
+
+    /**
+     * 体力的恢复时间（秒），记录上一次恢复体力的时间
+     */
+    @Column(name = "power_recover_time")
+    private Long powerRecoverTime;
+
     public GamePlayer() {
     }
 
@@ -57,6 +75,30 @@ public class GamePlayer {
         this.experience = experience;
         this.title = title;
         this.winNum = winNum;
+    }
+
+    public Long getPowerRecoverTime() {
+        return powerRecoverTime;
+    }
+
+    public void setPowerRecoverTime(Long powerRecoverTime) {
+        this.powerRecoverTime = powerRecoverTime;
+    }
+
+    public Integer getPower() {
+        return power;
+    }
+
+    public void setPower(Integer power) {
+        this.power = power;
+    }
+
+    public Long getPowerConsumeTime() {
+        return powerConsumeTime;
+    }
+
+    public void setPowerConsumeTime(Long powerConsumeTime) {
+        this.powerConsumeTime = powerConsumeTime;
     }
 
     public Integer getTieNum() {

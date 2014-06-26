@@ -41,13 +41,13 @@ public class Events {
     public final static int JOIN_WAIT_QUEUE = 0x16;          // 进入等待队列，准备随机匹配
     public final static int PLAYER_READY = 0x17;             // 玩家就绪
     public final static int GAME_START = 0x18;               // 游戏开始
-    public final static int SEND_PUSH_MSG = 0x19;             // 转发消息
+    public final static int SEND_PUSH_MSG = 0x19;            // 转发消息
     public final static int FORWARD_PUSH_MSG = 0x1a;
 
     public final static int SAVE_GAME_INFO = 0x30;
     public final static int SAVE_SEX = 0x31;                 // 设置性别
     public final static int SCORE_LIST = 0x32;               // 查询游戏排行榜
-
+    public final static int BATTLE_SCORE = 0x33;             // 查询对战双人总分
 
     public final static int SERVER_ERR = 0x50;               // 服务内部异常
 

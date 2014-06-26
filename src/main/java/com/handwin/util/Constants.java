@@ -9,7 +9,7 @@ public class Constants {
 
     public static int DUDU_APP_ID = 0;
 
-    public static int GAME_SONG = 1000;
+    public static int GAME_SONG = 2000;
 
     public final static int MALE = 1;
     public final static int FEMALE = 0;

@@ -141,10 +141,14 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
             log.debug("对方玩家{}已经准备好", player);
         } else if(Events.GAME_START == type) {
             log.debug("玩家已经准备好, 游戏开始");
+
+            getBattleScore(ctx.channel());
         } else if(Events.SCORE_LIST == type) {
             log.debug("获取到积分排行榜 {}", node.get("user_scores"));
         } else if(Events.FORWARD_PUSH_MSG == type) {
             log.debug("获取到消息 {}", node.get("msg").asText());
+        } else if(Events.BATTLE_SCORE == type) {
+            log.debug("获取到对战成绩 {}", node.get("battle_score").asText());
         }
     }
 
@@ -160,6 +164,11 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
         log.debug("客户端：获取积分列表");
 
         channel.writeAndFlush(new GetScoreListReqEvent(10));
+    }
+
+    private void getBattleScore(Channel channel) {
+        log.debug("客户端：发送获取对战成绩请求");
+        channel.writeAndFlush(new BttleScoreReqEvent(1000, 500));
     }
 
     private void ready(Channel channel, String player) {
@@ -284,24 +293,24 @@ public class ClientTest {
 
     public static void main(String[] args) throws Exception {
 
-        /*new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    new ClientTest("0487a30e4db042a0816c88f0e9da12ed", Events.LOGIN_GAME).start();
+                    new ClientTest("0487a30e4db042a0816c88f0e9da12ed", Events.JOIN_WAIT_QUEUE).start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
-        }).start();*/
+        }).start();
 
-        /*Thread.sleep(10000);  */
+        Thread.sleep(5000);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    new ClientTest("188979c5149c47b49969271795b383cd", Events.LOGIN_GAME).start();
+                    new ClientTest("188979c5149c47b49969271795b383cd", Events.JOIN_WAIT_QUEUE).start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
