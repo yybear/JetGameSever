@@ -46,6 +46,7 @@ public abstract class NettyTcpServer implements InitializingBean, DisposableBean
     @Override
     public void destroy() throws Exception {
         log.info("server stop.");
+        bossGroup.shutdownGracefully();
         workGroup.shutdownGracefully();
     }
 
@@ -65,6 +66,8 @@ public abstract class NettyTcpServer implements InitializingBean, DisposableBean
                     .option(ChannelOption.SO_BACKLOG, backlog);
 
             bootstrap.childHandler(pipelineFactory);
+
+            initializeGameServer();
 
             ChannelFuture f = bootstrap.bind(new InetSocketAddress(port)).sync();
             log.info("GAME Server start");
