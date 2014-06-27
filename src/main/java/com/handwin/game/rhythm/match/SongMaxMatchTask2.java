@@ -34,6 +34,7 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
 
     private Map<String, Female> femaleInterestMap = Maps.newHashMap();
     private Map<String, Male> maleInterestMap = Maps.newHashMap();
+    private Hungarian hungarian = new Hungarian();
 
     private void add(Player femalePlayer, Player malePlayer) {
 
@@ -125,9 +126,20 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
             // 匹配完成后，剩下的male 也没有匹配成功
             cannotMatch(malePool, maleWaitQueue);
 
+            int size = femaleInterestMap.size();
+            if(size == 0)
+                return;
             // 使用匈牙利算法配对
-            Hungarian hungarian = new Hungarian();
-            log.debug("femaleInterestMap size is {}", femaleInterestMap.size());
+            if(log.isDebugEnabled()) {
+                log.debug("femaleInterestMap size is {}", size);
+                for(String key : femaleInterestMap.keySet()) {
+                    log.debug("femaleInterestMap item key is {}", key);
+                    Map<String, Male> value = femaleInterestMap.get(key).getMales();
+                    for(String key2 : value.keySet()) {
+                        log.debug("males key is {}", key2);
+                    }
+                }
+            }
             hungarian.findMatch(femaleInterestMap);
             Set<PlayerMatchItem> matchItemSet = hungarian.getMatchs();
             log.debug("match size is {}", matchItemSet.size());
@@ -138,6 +150,8 @@ public class SongMaxMatchTask2 extends RandomMatchTask {
 
                 matchOk(female, male, gameSession);
             }
+
+            hungarian.clear(); femaleInterestMap.clear(); maleInterestMap.clear(); //清理
         }
     }
 

@@ -93,8 +93,12 @@ public class Hungarian {
         System.out.println("匹配信息：" + matchs);
     }
 
+    public void clear() {
+        matchs.clear();
+        path.clear();
+    }
+
     public static void main(String[] args) {
-        Hungarian h = new Hungarian();
         Map<String, Female> femaleInterestMap = Maps.newHashMap();
         Map<String, Male> maleInterestMap = Maps.newHashMap();
         Female f1 = new Female("f1");
@@ -128,8 +132,14 @@ public class Hungarian {
         maleInterestMap.put("m1", m1);
         maleInterestMap.put("m2", m2);
         maleInterestMap.put("m3", m3);
-        h.findMatch(femaleInterestMap);
+        Hungarian h = new Hungarian();
+        for(int i = 0; i < 2; i++) {
+            h.clear();
+            m1.setUsed(false); m2.setUsed(false); m3.setUsed(false);
 
-        h.printMatchInfo();
+            h.findMatch(femaleInterestMap);
+
+            h.printMatchInfo();
+        }
     }
 }
