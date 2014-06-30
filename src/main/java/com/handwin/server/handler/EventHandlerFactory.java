@@ -282,6 +282,21 @@ public class EventHandlerFactory implements InitializingBean {
         };
     }
 
+    protected EventHandler joinRamdomQueueHandler() {
+        return new EventHandler(clientApi) {
+            @Override
+            public void onEvent(JsonNode node, Channel channel) throws Exception {
+                String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
+                int appId = channel.attr(APPID_ATTR_KEY).get();
+                if (!auth(sessionId, appId, channel)) {
+                    return;
+                }
+
+                matchTask.joinQueue(node, channel);
+            }
+        };
+    }
+
     protected void initEventHandlerMap() {
         EVENT_HANDLER_MAP.put(Events.LOGIN_GAME, loginGameHandler());
 
@@ -512,18 +527,7 @@ public class EventHandlerFactory implements InitializingBean {
             }
         });
 
-        EVENT_HANDLER_MAP.put(Events.JOIN_WAIT_QUEUE, new EventHandler(clientApi) {
-            @Override
-            public void onEvent(JsonNode node, Channel channel) throws Exception {
-                String sessionId = channel.attr(PLAYERSESSION_ATTR_KEY).get();
-                int appId = channel.attr(APPID_ATTR_KEY).get();
-                if (!auth(sessionId, appId, channel)) {
-                    return;
-                }
-
-                matchTask.joinQueue(node, channel);
-            }
-        });
+        EVENT_HANDLER_MAP.put(Events.JOIN_WAIT_QUEUE, joinRamdomQueueHandler());
 
         EVENT_HANDLER_MAP.put(Events.SEND_PUSH_MSG, new EventHandler(clientApi) {
             @Override

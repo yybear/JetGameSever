@@ -22,8 +22,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class RandomMatchTask implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(RandomMatchTask.class);
-    protected LinkedBlockingQueue<Player> maleWaitQueue = new LinkedBlockingQueue<Player>(10000);
-    protected LinkedBlockingQueue<Player> femaleWaitQueue = new LinkedBlockingQueue<Player>(10000);
+    protected LinkedBlockingQueue<Player> maleWaitQueue = new LinkedBlockingQueue<Player>();
+    protected LinkedBlockingQueue<Player> femaleWaitQueue = new LinkedBlockingQueue<Player>();
 
     @Autowired
     protected PlayerManager playerManager;
@@ -46,7 +46,7 @@ public class RandomMatchTask implements Runnable {
         }
 
         if(res) {
-            log.debug("player {} join in wait queue", player.getUser().getId());
+            log.debug("player {}, sex {} join in wait queue", player.getUser().getId(), player.getUser().getSex());
             player.setAttribute("joinQueueTime", System.currentTimeMillis());
         }
     }
@@ -69,6 +69,7 @@ public class RandomMatchTask implements Runnable {
         } else if(maleSize > 0 && femaleSize == 0) {
             cannotMatch(maleWaitQueue, maleSize);
         } else {
+            // TODO: 不同游戏共用了队列
             Player male = maleWaitQueue.poll();
             Player female = femaleWaitQueue.poll();
             GameSession gameSession = gameSessionManager.createSession(male, female);

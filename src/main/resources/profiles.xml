@@ -15,7 +15,6 @@
             <property name="locations">
                 <list>
                     <value>classpath:config.properties</value>
-                    <value>classpath:config-empty.properties</value>
                 </list>
             </property>
             <property name="fileEncoding" value="utf-8"/>
@@ -30,6 +29,32 @@
                 <list>
                     <value>classpath:config.properties</value>
                     <value>classpath:config-rhythm.properties</value>
+                </list>
+            </property>
+            <property name="fileEncoding" value="utf-8"/>
+        </bean>
+        <context:property-placeholder properties-ref="appConfig"/>
+    </beans>
+
+    <beans profile="shaz">
+        <bean id="appConfig" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+            <property name="locations">
+                <list>
+                    <value>classpath:config.properties</value>
+                    <value>classpath:config-shaz.properties</value>
+                </list>
+            </property>
+            <property name="fileEncoding" value="utf-8"/>
+        </bean>
+        <context:property-placeholder properties-ref="appConfig"/>
+    </beans>
+
+    <beans profile="touch">
+        <bean id="appConfig" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+            <property name="locations">
+                <list>
+                    <value>classpath:config.properties</value>
+                    <value>classpath:config-touch.properties</value>
                 </list>
             </property>
             <property name="fileEncoding" value="utf-8"/>

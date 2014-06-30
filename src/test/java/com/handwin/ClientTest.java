@@ -2,7 +2,6 @@ package com.handwin;
 
 import com.handwin.entity.User;
 import com.handwin.event.*;
-
 import com.handwin.server.handler.Packet;
 import com.handwin.server.handler.ProtocolDecoder;
 import com.handwin.server.handler.ProtocolEncoder;
@@ -50,7 +49,7 @@ class ClientHandler extends SimpleChannelInboundHandler<Packet> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        LoginGameReqEvent loginGameReqEvent = new LoginGameReqEvent(sessionId, 2000);
+        LoginGameReqEvent loginGameReqEvent = new LoginGameReqEvent(sessionId, 200);
         ctx.writeAndFlush(loginGameReqEvent);
     }
 
@@ -269,7 +268,7 @@ public class ClientTest {
             Bootstrap b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
-                    .remoteAddress(new InetSocketAddress("test.v5.cn", 19001))
+                    .remoteAddress(new InetSocketAddress("test.v5.cn", 19000))
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch)
@@ -287,7 +286,6 @@ public class ClientTest {
             f.channel().closeFuture().sync();
         } finally {
             group.shutdownGracefully().sync();
-
         }
     }
 

@@ -47,7 +47,7 @@ public class Cassandra {
             player.setThreeStarNum(0);
             player.setLoseNum(0);
             player.setTieNum(0);
-            player.setPower(ConfigUtils.getInt("game.song.power"));
+            player.setPower(ConfigUtils.getInt("game.power"));
             player.setPowerConsumeTime(0l);
             player.setPowerRecoverTime(0L);
             manager.persist(player);
