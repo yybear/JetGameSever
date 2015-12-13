@@ -34,8 +34,8 @@ public class MultiplexerChannelInitializer extends ChannelInitializer<SocketChan
         ch.pipeline().addLast("logging", new LoggingHandler());
         ch.pipeline().addLast("frame_decoder", new LengthFieldBasedFrameDecoder(65535, 12, 2, 2, 0, true));
         ch.pipeline().addLast("protocol_decoder", new ProtocolDecoder());
-        ch.pipeline().addLast("handler", createServerEventHandler());
         ch.pipeline().addLast("frame_encoder", new ProtocolEncoder());
+        ch.pipeline().addLast("handler", createServerEventHandler());
     }
 
     protected ServerEventHandler createServerEventHandler() {
